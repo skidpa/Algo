@@ -29,32 +29,35 @@ class PANoob:
 
     def insertSlot(self, key):
         slot = self.hashFunct(key)
-        #self.collision += 1
-        #self.collisionTotal += 1
+
         while self.slots[slot] is not None:
 
-            self.probes += 1
-            slot = (slot + 1) % self.size
-            self.collicount = 1
+            self.hasCollided = True
 
-        self.collision = self.collision + self.collicount
-        print "collision: ", self.collision
+            self.probes += 1
+
+            slot = (slot + 1) % self.size
         return slot
 
     def insert(self, key):
         slot = self.insertSlot(key)
 
+        if self.hasCollided:
+            self.collisionTotal += 1
+            self.collision +=1
+            if self.collision > self.collisionLongestSofar:
+                self.collisionLongestSofar = self.collision
+        else:
+            if self.collision > self.collisionLongestSofar:
+                self.collisionLongestSofar = self.collision
+                print "wtf am i doing here"
+            self.collision = 0
+
         if self.slots[slot] != key:
             self.slots[slot] = key
             self.count += 1
-            #self.collisionreset()
+            self.hasCollided = False
 
-    #def collisionreset(self):
-    #    if self.collisionLongest < self.collisionchain:
-    #        self.collisionLongest = self.collisionchain
-    #        self.collisionchain = 0
-    #    else:
-    #        self.collisionchain = 0
 
 
 # --------- class 2 -------------
@@ -74,48 +77,61 @@ class StahlJohanUpDown:
         self.probes = 0
         self.inserts = 0
         self.loadfactor = 0
+        self.collicount = 0
+        self.collisionchain = 0
+        self.hasCollided = False
+        self.collisionLongestSofar = 0
+        self.collisionTest = 0
+        self.hasCollidedup = False
+        self.hasCollideddown = False
 
     def hashFunct(self, key):
         return hash(key) % self.size  # returnerar X mod M som positionsplats.
 
     def insertSlot(self, key):
         slot = self.hashFunct(key)  # har tilldelas svaret fran X mod M till variabel
+
+        #if self.slots[slot] is not None:
+            #self.collision += 1
+         #   print "first if ", self.collision
+
         if self.l_down <= self.l_up:
-            self.l_down += 1
+
             while self.slots[slot] is not None:
+                self.l_down += 1
+                self.hasCollidedup = True
+                self.hasCollided = True
                 slot = (slot + 1) % self.size
 
-            self.collision += 1
-            self.collisionTotal += 1
-        if self.l_down > self.l_up:
-            self.l_up += 1
+            # self.collision += 1
+            # self.collisionTotal += 1
+        if self.l_down >self.l_up:
+
             while self.slots[slot] is not None:
+                self.l_up += 1
+                self.hasCollideddown = True
+                self.hasCollided = True
                 slot = (slot - 1) % self.size
 
-            self.collision += 1
-            self.collisionTotal += 1
+            # self.collision += 1
+            # self.collisionTotal += 1
 
         return slot
 
-    def collisionreset(self):
-        if self.collisionLongest < self.collision:
-            self.collisionLongest = self.collision
-        else:
-            self.collision = 0
-
     def insert(self, key):
 
-        if self.l_down <= self.l_up:
+        if self.l_down < self.l_up:
             slot = self.insertSlot(key)
-            self.l_down += 1
+            #self.l_down += 1
         else:
             slot = self.insertSlot(key)
-            self.l_up += 1
+            #self.l_up += 1
 
         if self.slots[slot] != key:
             self.slots[slot] = key
             self.inserts += 1
-            self.collisionreset()
+            self.hasCollided = False
+            #self.collisionreset()
 
 # --------- class 3 -------------
 
@@ -322,7 +338,7 @@ def loadrandom(m, filename):
 
 def runshit(m,filename, randomnumbersfile, maxirun, c):
 
-    b = 5  # should be same as the start value for m/c depending on class to run
+    b = 7  # should be same as the start value for m/c depending on class to run
     print "\nopen file: ", filename
     f = open(filename, "w")
     print "file open ", filename, "Ready to save output's"
@@ -369,22 +385,23 @@ def runshit(m,filename, randomnumbersfile, maxirun, c):
             #"\nrehash: ", hash1.rehashed, " c: ", hash1.c  # uncomment to save additional values for class 3
         print "\n--------- Test nr: ", b, " klar ---------", "\n"
 
-        c += 4  # raise c value
-        #m += 5  # change for stepping interval of modulu and hashtable size
+        #c += 4  # raise c value
+        m += 7  # change for stepping interval of modulu and hashtable size
         print "\nNew m after run : ", m
-        b += 4  # raise b, should be same as m/c depending on which class to run
+        b += 7  # raise b, should be same as m/c depending on which class to run
     f.close()
     print "done. ", filename, " closed."
 
-    # print hash1.slots
+    print hash1.slots
 
 
-m = 5
-last_m = 5
+m = 7
+last_m = 7
 cvarde = 4  # not used for class 1 and 2
 randlst = []
-
-testlst = [5,15,25,45,35]
+#testlst=[5,15,25,3,35]  # c=3 cc=2
+#testlst = [10,1,2,3,13,23,6,7,80,9]  # c = 3 cc = 2
+testlst = [7,14,21,28,4,5,38]  # c= 4 cc = 3
 
 # run randomgen below one time first to generate random numbers to be used if not supplied then comment it out again
 # randomgen(langd, 1, langd, randlst, "randomnumbers_up_down.txt")
@@ -393,3 +410,7 @@ testlst = [5,15,25,45,35]
 
 #def runshit(m,filename, randomnumbersfile, maxirun, c): starting m value, name of output file, name of random numbers file, last m value, c value
 runshit(m, "lab2_rehash_test5.txt", "randomnumbers_up_down.txt", last_m, cvarde)
+
+
+
+#  [5, 15, 25, 3, 35]
